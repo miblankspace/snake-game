@@ -1,0 +1,261 @@
+/**  @studentname: Michelle Tan
+     @teacher: Ghorvei
+     @course: ICS 2O0
+     @date: January 11th, 2020
+     
+     @program: Creates the Snake game! When you "eat" a piece of "food," the snake grows.
+               If you bump into the walls or yourself, you "die." (This includes going backwards.)
+               Comes with title screen, score, high score, game over screen, option to restart, and grid mode option.
+*/
+
+int gamescreen=0;                             //Identifies initial value for gamescreen: the state of the game
+
+int xspeed=20;                                //Identifies initial value for xspeed: the speed of the x coordinate of the snake
+int yspeed=0;                                 //Identifies initial value for yspeed: the speed of the y coordinate of the snake
+int [] tailx;                                 //Identifies array tailx: the list of x coordinate(s) of the snake
+int [] taily;                                 //Identifies array taily: the list of y coordinate(s) of the snake
+int grid=20;                                  //Identifies grid: the length and width of the snake/food that gives structure to a grid
+
+int foodx;                                    //Identifies foodx: the x coordinate of the "food" (which will be an ellipse)
+int foody;                                    //Identifies foody: the y coordinate of the "food" (which will be an ellipse)
+
+int score=0;                                  //Identifies initial value for score
+int highScore=0;                              //Identifies initial value for highScore
+
+boolean lines=false;                          //Sets boolean lines as false
+
+void setup(){                                 //Open void setup and prepares setup for program
+  size(600,600);                              //Sets size of program
+  ellipseMode(CENTER);                        //Sets mode of ellipse to center
+  rectMode(CENTER);                           //Sets mode of rectangle to center
+  frameRate(10);                              //Sets the frame rate 
+  foodLocation();                             //Calls function foodLocation
+  tailx = new int[1];                         //Initializes array tailx
+  taily = new int[1];                         //Initializes array taily
+  tailx[0]=10;                                //Sets the first number of the array to 10
+  taily[0]=10;                                //Sets the first number of the array to 10
+}                                             //Close void setup   
+
+void draw(){                                  //Opens void draw and prepares program to draw
+  if(gamescreen==0){                          //If value of gamescreen is 0 
+    startscreen();                            //Calls function startscreen
+  }else if(gamescreen==1){                    //Otherwise, if value of gamescreen is 1
+    playscreen();                             //Calls function playscreen
+  }else if(gamescreen==3){                    //Otherwise, if value of gamescreen is 2
+    gameover();                               //Calls function gameover
+  }                                           //Close else if statement
+}                                             //Close void draw
+
+void startscreen(){                           //Declares new function startscreen (title screen)
+  background(0);                              //Sets background colour to black
+  fill(255,0,0);                              //Sets fill colour to red
+  textSize(50);                               //Sets text size
+  textAlign(CENTER);                          //Sets text alignment
+  text("SNAKE",300,270);                      //Writes text in brackets at coordinates described
+  textSize(25);                               //Sets text size
+  fill(255);                                  //Sets fill colour to white
+  text("Click to Start",300,320);             //Writes text in brackets at coordinates described
+  textSize(15);                               //Sets text size
+  fill(230);                                  //Sets fill colour to greyish-white
+  text("Press SHIFT to show the grid while playing. Press TAB to exit grid mode.",300,500); //Writes text in brackets at coordinates described
+}                                             //Close function startscreen
+
+void playscreen(){                            //Declares new function playscreen (where the player plays the game)
+  background(0);                              //Sets background colour to black
+  keyTyped();                                 //Calls function keyTyped
+  score();                                    //Calls function score
+  showSnake();                                //Calls function showSnake
+  updateSnake();                              //Calls function updateSnake
+  keyPressed();                               //Calls function keyPressed
+  food();                                     //Calls function food
+  if(eat()==true){                            //If function eat (type: boolean) is true
+    foodLocation();                           //Calls function foodLocation
+    scorechange();                            //Calls function scorechange
+  }                                           //Close if statement
+}                                             //Close function playscreen
+
+void gameover(){                              //Declares new function gameover (the game over screen)
+  background(0);                              //Sets background colour to black                           
+  textSize(50);                               //Sets text size
+  fill(255,0,0);                              //Sets fill colour to red
+  textAlign(CENTER);                          //Sets text alignment
+  text("GAME OVER", 300,230);                 //Writes text in brackets at coordinates described
+  textSize(25);                               //Sets text size
+  text("Score:"+score,300,280);               //Writes text in brackets and the value of score at coordinates described
+  fill(255,255,0);                            //Sets fill colour to yellow
+  text("High Score:"+highScore,300,330);      //Writes text in brackets and the value of highScore at coordinates described
+  fill(255);                                  //Sets fill colour to white
+  text("Click to Restart",300,380);           //Writes text in brackets at coordinates described
+}                                             //Close function gameover
+
+void mouseClicked(){                          //Declares function mouseClicked (when the mouse is clicked)
+  if(gamescreen==0){                          //If the value of gamescreen is 0 when the mouse is clicked
+    gamescreen=1;                             //Sets the value of gamescreen to 1
+  }                                           //Close if statement
+  if(gamescreen==3){                          //If the value of gamescreen is 3 when the mouse is clicked
+    restart();                                //Calls function restart
+  }                                           //Close if statement
+}                                             //Close function mouseClicked
+
+void keyTyped(){                              //Declares function keyTyped (when a key is typed)             
+  if(keyCode==SHIFT){                         //If the key pressed is SHIFT
+    if(lines==false){                         //If boolean lines is false when SHIFT is typed
+      lines=true;                             //Sets lines to true
+    }                                         //Close nested if statement
+  }                                           //Close if statement
+  if(keyCode==TAB){                           //If the key pressed is TAB
+    if(lines==true){                          //If boolean lines is true when TAB is typed
+      lines=false;                            //Sets lines to true
+    }                                         //Close nested if statement
+  }                                           //Close if statement
+  if(lines==true){                            //If boolean lines is true
+    lines();                                  //Calls function lines
+  }                                           //Close if statement
+}                                             //Close function keyTyped
+
+void lines(){                                 //Declares new function lines (for drawing the grid)
+  for(int i=0;i<width;i=i+20){                //Declares variable i; if i is less than with; i will add 20 each time
+    stroke(150);                              //Sets stroke colour to grey
+    line(i,0,i,height);                       //Draws a line using value of variable i
+  }                                           //Close for loop
+  
+  for(int i=0;i<height;i=i+20){               //Declares variable i; if i is less than height; i will add 20 each time               
+    stroke(150);                              //Sets stroke colour to grey
+    line(0,i,width,i);                        //Draws a line using value of variable i
+  }                                           //Close for loop
+}                                             //Close function lines
+
+void showSnake(){                             //Declares new function showSnake (for drawing the snake)
+  fill(255);                                  //Sets fill colour to white
+  stroke(0);                                  //Sets stroke colour to black
+  rect(tailx[0],taily[0],grid,grid);          //Draws a rectangle using values of variables
+}                                             //Close function showSnake
+
+void updateSnake(){                           //Declares new function updateSnake (for moving the snake)
+  checkdead();                                //Calls function checkdead (to check if it's dead before it moves again)
+  fill(255);                                  //Sets fill colour to white
+  stroke(0);                                  //Sets stroke colour to black
+  for(int i=0; i<tailx.length; i++){          //Declares variable i; if i is less than the length of the tailx array; i will add one each time
+    rect(tailx[i], taily[i], 20, 20);         //Draws a rectangle based on the value of i (the array number) (this is the tail of the snake)
+  }                                           //Close for loop
+
+  int [] newTailX = new int[tailx.length];    //Declares and initializes array newTailX
+  int [] newTailY = new int[taily.length];    //Declares and initializes array newTailY
+  
+  for (int i = 0; i < tailx.length - 1; i++){ //Declares variable i, if i is less than the length of the tail x array minus 1 (deletes last spot); i will add one each time
+    newTailX[i + 1] = tailx[i];               //Copy the tailx array values to the newTailX array, shift everything down
+    newTailY[i + 1] = taily[i];               //Copy the taily array values to the newTailY array, shift everything down  
+  }                                           //Close for loop
+  
+  newTailX[0] = (tailx[0] + xspeed);          //Sets the first number in the newTailX array as the first number in the tailx array plus xspeed (adds a spot in front)
+  newTailY[0] = (taily[0]+ yspeed);           //Sets the first number in the newTailY array as the first number in the taily array plus xspeed (adds a spot in front)
+  
+  tailx = newTailX;                           //Sets tailx as newTailX
+  taily = newTailY;                           //Sets taily as newTailY
+}                                             //Close function updateSnake
+
+void keyPressed(){                            //Declares function keyPressed
+  if(key==CODED){                             //Detects special keys (e.g. arrow keys)
+    if(keyCode==UP){                          //If the key pressed is UP
+      xspeed=0;                               //Change xspeed
+      yspeed=-20;                             //Change yspeed
+    }else if(keyCode==DOWN){                  //Otherwise, if the key pressed is DOWN
+      xspeed=0;                               //Change xspeed
+      yspeed=20;                              //Change yspeed
+    }else if(keyCode==RIGHT){                 //Otherwise, if the key pressed is RIGHT
+      xspeed=20;                              //Change xspeed
+      yspeed=0;                               //Change yspeed
+    }else if(keyCode==LEFT){                  //Otherwise, if the key pressed is LEFT
+      xspeed=-20;                             //Change xspeed
+      yspeed=0;                               //Change yspeed
+    }                                         //Close else if statement
+  }                                           //Close if statement
+}                                             //Close function keyPressed
+
+void foodLocation(){                          //Declares new function foodLocation (picks a random location on the grid for the food)
+  float cols=floor(width/grid);               //Declares and initializes variable cols (columns), floor rounds the number down
+  float rows=floor(height/grid);              //Declares and initializes variable rows, floor rounds the number down
+  foodx=(floor(random(cols)));                //Picks random foodx location within cols, rounds down
+  foody=(floor(random(rows)));                //Picks random foody location within rows, rounds down
+  foodx=foodx*grid+10;                        //Adds 10 to the random foodx location so it is in the middle of the grid
+  foody=foody*grid+10;                        //Adds 10 to the random foody location so it is in the middle of the grid
+  foodx=constrain(foodx,0+10,width-10);       //Constrains the foodx random location to the size of the program (-10 because we need to see the whole ellipse)
+  foody=constrain(foody,0+10,height-10);      //Constrains the foody random location to the size of the program (-10 because we need to see the whole ellipse)      
+}                                             //Close function foodLocation
+
+void food(){                                  //Declares new function food (draws the food)
+  fill(255,0,0);                              //Sets fill colour to red
+  stroke(0);                                  //Sets stroke colour to black
+  ellipse(foodx,foody,grid,grid);             //Draws an ellipse using values of variables
+}                                             //Close function food 
+
+boolean eat(){                                //Declares new function eat, type boolean (for when the snake eats the food)
+  float d=dist(tailx[0],taily[0],foodx,foody);//Declares and initializes variable d, the distance between the head of the snake and the food 
+  if(d<1){                                    //If d (distance) is less than 1
+    fill(255);                                //Sets fill colour to white
+    stroke(0);                                //Sets stroke colour to black
+    for(int i=0; i<tailx.length; i++){        //Declares variable i; if i is less than the length of the tailx array; i will add one each time
+      rect(tailx[i], taily[i], 20, 20);       //Draws a rectangle based on the value of i (the array number) (this is the tail of the snake)    
+    }                                         //Close for loop
+
+    int [] newTailX = new int[tailx.length+1];//Declares and initializes array newTailX, increases the array length (adds a block to the tail)
+    int [] newTailY = new int[taily.length+1];//Declares and initializes array newTailX, increases the array length (adds a block to the tail)
+  
+    for (int i = 0; i < tailx.length; i++){   //Declares variable i, if i is less than the length of the tail x array (DOES NOT DELETE LAST LOCATION); i will add one each time 
+      newTailX[i + 1] = tailx[i];             //Copy the tailx array values to the newTailX array, shift everything down
+      newTailY[i + 1] = taily[i];             //Copy the taily array values to the newTailY array, shift everything down
+    }                                         //Close for loop
+    
+    newTailX[0] = (tailx[0] + xspeed);        //Sets the first number in the newTailX array as the first number in the tailx array plus xspeed (adds a spot in front)
+    newTailY[0] = (taily[0]+ yspeed);         //Sets the first number in the newTailX array as the first number in the tailx array plus xspeed (adds a spot in front)            
+  
+    tailx = newTailX;                         //Sets tailx as newTailX
+    taily = newTailY;                         //Sets taily as newTailY
+    return true;                              //Return as true
+  }else{                                      //Otherwise
+    return false;                             //Return as false
+  }                                           //Close if statement
+}                                             //Close function eat
+
+void score(){                                 //Declares new function score (writes the score)
+  textSize(20);                               //Sets text size
+  textAlign(LEFT);                            //Sets text alignment
+  fill(255);                                  //Sets fill colour as white
+  text("Score:"+score,20,40);                 //Writes text in brackets and the value of score at coordinates described                  
+}                                             //Close function score
+
+void scorechange(){                           //Declares new function scorechange (changes the score)
+  println("you ate!");                        //Prints a line containing text in brackets
+  score++;                                    //Score adds one  
+  if(score>highScore){                        //If the value of score is over the value of highScore 
+    highScore=score;                          //Set the value of highScore as score
+  }                                           //Close if statement
+}                                             //Close function scorechange
+
+void checkdead(){                             //Declares new function checkdead (checks if the snake is dead and actions to take when dead)
+  for(int i=1;i<tailx.length;i++){            //Declares variable i; if i is less than the length of the tailx array; i will add one each time
+    float d=dist(tailx[0],taily[0],tailx[i],taily[i]);//Declares and initializes variable d, the distance between the head of the snake and any part of its tail
+    if (d<1){                                 //If d (distance) is less than 1                                  
+      println("you died!");                   //Prints a line containing text in brackets
+      gamescreen=3;                           //Changes value of gamescreen to 3
+    }                                         //Close if statement
+  }                                           //Close for loop
+  
+  if((tailx[0]>width)||(taily[0]>height)||(tailx[0]<0)||(taily[0]<0)){//If the head is outside of the size of the program
+    println("you died!");                     //Prints a line containing text in brackets
+    gamescreen=3;                             //Changes value of gamescreen to 3
+  }                                           //Close if statement
+}                                             //Close function checkdead
+
+void restart(){                               //Declares new function restart (for restarting the game)
+  score=0;                                    //Sets score back to 0
+  xspeed=20;                                  //Sets xspeed back to 20 (so the snake will move right when game restarts)
+  yspeed=0;                                   //Sets yspeed back to 0 (so the snake will move right when game restarts)
+  keyCode=RIGHT;                              //Sets keyCode back to RIGHT (so the snake will move right when game restarts)
+  foodLocation();                             //Picks a new location for the food
+  tailx = new int[1];                         //Sets array tailx back to one item in the list
+  taily = new int[1];                         //Sets array taily back to one item in the list
+  tailx[0]=10;                                //Sets the first number of the array back to 10 
+  taily[0]=10;                                //Sets the first number of the array back to 10
+  gamescreen=1;                               //Sets the value of gamescreen back to 1
+}                                             //Close function restart
